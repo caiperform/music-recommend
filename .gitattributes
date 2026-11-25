@@ -1,0 +1,7 @@
+# 代码统一使用 LF，避免 Windows 下自动转换换行符
+* text=auto eol=lf
+
+# 数据集与二进制文件不做换行符转换（否则会破坏 tab 分隔的原始数据）
+*.dat -text
+*.png binary
+*.pkl -text

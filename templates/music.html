@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 音乐艺术家推荐系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ========== 全局重置 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=2070&auto=format&fit=crop');
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 半透明遮罩层，提高文字可读性 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 0;
+        }
+
+        /* ========== 主容器 ========== */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 50px 45px 45px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        /* ========== 头部 ========== */
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header .icon {
+            font-size: 52px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 span {
+            background: linear-gradient(135deg, #4ed2e1, #6896e6, #0a2673);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            margin-top: 8px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== 搜索框 ========== */
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 16px 22px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            font-weight: 400;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+            font-weight: 300;
+        }
+
+        .search-box input:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.06);
+        }
+
+        .search-box button {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #42a0c8, rgba(99, 99, 228, 0.89));
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 24px rgba(245, 87, 108, 0.35);
+        }
+
+        .search-box button:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 12px 32px rgba(245, 87, 108, 0.5);
+        }
+
+        .search-box button:active {
+            transform: scale(0.97);
+        }
+
+        /* ========== 快捷标签 ========== */
+        .quick-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .quick-tags span {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            font-weight: 400;
+            margin-right: 4px;
+        }
+
+        .quick-tag {
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 400;
+        }
+
+        .quick-tag:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* ========== 加载动画 ========== */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #55c5ec;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        /* ========== 推荐结果 ========== */
+        .results {
+            display: none;
+            margin-top: 28px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .results-header .query-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .results-header .query-info strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .results-header .count-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 14px;
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        /* ========== 结果卡片 ========== */
+        .result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .result-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .result-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .result-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(6px);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .result-item .rank {
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.25);
+            width: 34px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .result-item .rank.top1 {
+            color: #ffd700;
+        }
+        .result-item .rank.top2 {
+            color: #c0c0c0;
+        }
+        .result-item .rank.top3 {
+            color: #cd7f32;
+        }
+
+        .result-item .artist-info {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .result-item .artist-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.2px;
+        }
+
+        .result-item .artist-tags {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 3px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .result-item .score {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .result-item .score-bar {
+            width: 72px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .result-item .score-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #939dfb, #f5576c);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .result-item .score-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            min-width: 48px;
+            text-align: right;
+        }
+
+        /* ========== 错误提示 ========== */
+        .error-msg {
+            display: none;
+            text-align: center;
+            padding: 30px 0;
+            color: #ff6b7a;
+            font-size: 15px;
+        }
+
+        .error-msg.active {
+            display: block;
+        }
+
+        /* ========== 空状态 ========== */
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .empty-state.active {
+            display: block;
+        }
+
+        .empty-state .emoji {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* ========== 页脚 ========== */
+        .footer {
+            text-align: center;
+            margin-top: 28px;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 20px;
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 640px) {
+            .container {
+                padding: 28px 18px 24px;
+                border-radius: 24px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-box button {
+                width: 100%;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            .result-item {
+                flex-wrap: wrap;
+                padding: 12px 14px;
+            }
+
+            .result-item .score {
+                width: 100%;
+                margin-top: 8px;
+                padding-left: 44px;
+            }
+
+            .result-item .score-bar {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <span class="icon"></span>
+            <h1>音乐<span>音乐家</span>推荐</h1>
+            <p>输入你喜欢的音乐风格，AI 为你发现宝藏艺术家</p>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="search-box">
+            <input
+                type="text"
+                id="tagInput"
+                placeholder="例如：rock electronic sad piano"
+                autofocus
+            />
+            <button id="searchBtn"> 开始推荐</button>
+        </div>
+
+        <!-- 快捷标签 -->
+        <div class="quick-tags">
+            <span> 试试：</span>
+            <span class="quick-tag" data-tags="rock alternative"> 摇滚</span>
+            <span class="quick-tag" data-tags="electronic dance"> 电子</span>
+            <span class="quick-tag" data-tags="sad emotional piano"> 情绪钢琴</span>
+            <span class="quick-tag" data-tags="jazz saxophone"> 爵士</span>
+            <span class="quick-tag" data-tags="chill ambient relax"> 氛围放松</span>
+            <span class="quick-tag" data-tags="hip-hop rap"> 嘻哈</span>
+        </div>
+
+        <!-- 加载动画 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在为你匹配音乐家...</p>
+        </div>
+
+        <!-- 错误信息 -->
+        <div class="error-msg" id="errorMsg">
+            ⚠️ <span id="errorText">出错了，请稍后重试</span>
+        </div>
+
+        <!-- 空状态 -->
+        <div class="empty-state" id="emptyState">
+            <span class="emoji">🎶</span>
+            <p>输入你喜欢的音乐标签，开始探索吧</p>
+        </div>
+
+        <!-- 推荐结果 -->
+        <div class="results" id="results">
+            <div class="results-header">
+                <span class="query-info">基于 “<strong id="queryDisplay"></strong>” 的推荐</span>
+                <span class="count-badge" id="countDisplay">0 位艺术家</span>
+            </div>
+            <div class="result-list" id="resultList"></div>
+        </div>
+
+        <div class="footer">
+            Powered by Last.fm · 基于机器学习的音乐推荐系统
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // DOM 元素
+            const tagInput = document.getElementById('tagInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const resultList = document.getElementById('resultList');
+            const queryDisplay = document.getElementById('queryDisplay');
+            const countDisplay = document.getElementById('countDisplay');
+            const errorMsg = document.getElementById('errorMsg');
+            const errorText = document.getElementById('errorText');
+            const emptyState = document.getElementById('emptyState');
+            const quickTags = document.querySelectorAll('.quick-tag');
+
+            // ========== 核心函数 ==========
+            async function fetchRecommendations(tags) {
+                // 显示加载，隐藏其他
+                loading.classList.add('active');
+                results.classList.remove('active');
+                errorMsg.classList.remove('active');
+                emptyState.classList.remove('active');
+
+                try {
+                    const response = await fetch('/recommend', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ tags: tags })
+                    });
+
+                    const data = await response.json();
+
+                    loading.classList.remove('active');
+
+                    if (!data.success) {
+                        showError(data.error || '推荐服务暂时不可用');
+                        return;
+                    }
+
+                    if (data.results && data.results.length > 0) {
+                        renderResults(data);
+                    } else {
+                        showEmpty('没有找到匹配的艺术家，试试其他标签');
+                    }
+
+                } catch (err) {
+                    loading.classList.remove('active');
+                    showError('网络请求失败，请检查服务是否运行');
+                    console.error('Error:', err);
+                }
+            }
+
+            function renderResults(data) {
+                queryDisplay.textContent = data.query;
+                countDisplay.textContent = data.count + ' 位艺术家';
+
+                resultList.innerHTML = '';
+
+                data.results.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+
+                    // 排名样式
+                    let rankClass = 'rank';
+                    if (item.rank === 1) rankClass += ' top1';
+                    else if (item.rank === 2) rankClass += ' top2';
+                    else if (item.rank === 3) rankClass += ' top3';
+
+                    // 进度条宽度
+                    const scorePercent = Math.min(item.score, 100);
+
+                    div.innerHTML = `
+                        <span class="${rankClass}">#${item.rank}</span>
+                        <div class="artist-info">
+                            <div class="artist-name">${escapeHtml(item.artist)}</div>
+                            <div class="artist-tags">${escapeHtml(item.tags)}</div>
+                        </div>
+                        <div class="score">
+                            <div class="score-bar">
+                                <div class="fill" style="width: ${scorePercent}%"></div>
+                            </div>
+                            <span class="score-text">${item.score}%</span>
+                        </div>
+                    `;
+
+                    resultList.appendChild(div);
+                });
+
+                results.classList.add('active');
+            }
+
+            function showError(msg) {
+                errorText.textContent = msg;
+                errorMsg.classList.add('active');
+            }
+
+            function showEmpty(msg) {
+                emptyState.querySelector('p').textContent = msg;
+                emptyState.classList.add('active');
+            }
+
+            // 简单的防XSS转义
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // ========== 事件绑定 ==========
+            // 搜索按钮
+            searchBtn.addEventListener('click', function() {
+                const tags = tagInput.value.trim();
+                if (!tags) {
+                    showError('请先输入你喜欢的音乐标签 ');
+                    return;
+                }
+                fetchRecommendations(tags);
+            });
+
+            // Enter键
+            tagInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+
+            // 快捷标签
+            quickTags.forEach(el => {
+                el.addEventListener('click', function() {
+                    const tags = this.dataset.tags;
+                    tagInput.value = tags;
+                    fetchRecommendations(tags);
+                });
+            });
+
+            // 默认聚焦
+            tagInput.focus();
+
+            // 如果用户有输入但点击其他快捷标签，按回车也能搜
+            // 已通过 keydown 支持
+
+            // ========== 自动展示欢迎状态 ==========
+            // 页面加载后默认显示空状态
+            emptyState.classList.add('active');
+
+        })();
+    </script>
+
+</body>
+</html>

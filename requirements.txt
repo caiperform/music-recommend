@@ -1,0 +1,21 @@
+# 运行环境依赖
+# Python 3.10+（Windows / Linux / macOS 均可）
+
+# Web Demo
+flask>=3.0
+
+# 数据处理与建模
+pandas>=2.0
+numpy>=1.26
+scipy>=1.11
+scikit-learn>=1.3
+
+# 协同过滤召回
+implicit>=0.7.2
+
+# 排序模型
+lightgbm>=4.0
+
+# 召回可视化（韦恩图）
+matplotlib>=3.8
+matplotlib-venn>=0.11

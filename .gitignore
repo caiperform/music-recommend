@@ -1,0 +1,17 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ===== 训练产物（体积大 / 依赖本地环境，可随时用 preprocess.py、train_ranker.py 重新生成）=====
+models/
+outputs/
+
+# ===== 编辑器 / 系统 =====
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
